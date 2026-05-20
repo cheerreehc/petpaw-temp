@@ -34,7 +34,8 @@
         <button id="btn-gantt" onclick="setView('gantt')" class="view-btn px-3 py-1.5 rounded-md text-xs font-medium text-slate-500">▥ Gantt</button>
       </div>
       <button onclick="openModal(null)" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700">＋ Feature</button>
-      <button onclick="exportHTML()" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-500 hover:bg-slate-50" title="Export & embed data into HTML file">⬇ Export</button>
+      <button onclick="exportJSON()" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-500 hover:bg-slate-50" title="Export data as board-data.json">⬇ JSON</button>
+      <button onclick="exportHTML()" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-500 hover:bg-slate-50" title="Export & embed data into HTML file">⬇ HTML</button>
       <button onclick="resetAll()" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-500 hover:bg-slate-50">↺ Reset</button>
     </div>
   </div>
@@ -304,16 +305,26 @@ function load() {
   function seedData() {
     try { const el=document.getElementById('seed-data'); const d=JSON.parse(el?.textContent||'null'); return d; } catch(e){ return null; }
   }
-  try {
-    const s=localStorage.getItem(STORAGE_KEY);
-    if (s) { features=JSON.parse(s); }
-    else { const d=seedData(); features=d?.features||DEFAULTS.map(f=>({...f})); }
-  } catch(e){ features=DEFAULTS.map(f=>({...f})); }
-  try {
-    const p=localStorage.getItem(POS_KEY);
-    if (p) { ganttPos=JSON.parse(p); }
-    else { const d=seedData(); if(d?.ganttPos) ganttPos=d.ganttPos; }
-  } catch(e){}
+  function applyData(d) {
+    if (d?.features) features = d.features;
+    else features = DEFAULTS.map(f=>({...f}));
+    if (d?.ganttPos) ganttPos = d.ganttPos;
+  }
+  // Try localStorage first
+  const hasLocal = localStorage.getItem(STORAGE_KEY);
+  if (hasLocal) {
+    try { features=JSON.parse(hasLocal); } catch(e){ features=DEFAULTS.map(f=>({...f})); }
+    try { const p=localStorage.getItem(POS_KEY); if(p) ganttPos=JSON.parse(p); } catch(e){}
+    return;
+  }
+  // Try board-data.json (works when served via HTTP)
+  fetch('board-data.json')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if(d) { applyData(d); renderBoard(); updateLegend(); } })
+    .catch(() => {});
+  // Fall back to seed-data or DEFAULTS (synchronous)
+  const d = seedData();
+  applyData(d);
 }
 
 function savePos() { localStorage.setItem(POS_KEY, JSON.stringify(ganttPos)); }
@@ -786,6 +797,15 @@ function resetAll() {
 // ══════════════════════════════════════════════════════════
 //  EXPORT TO HTML (embed data for sharing)
 // ══════════════════════════════════════════════════════════
+function exportJSON() {
+  const data = { features, ganttPos };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'board-data.json';
+  a.click(); URL.revokeObjectURL(url);
+}
+
 function exportHTML() {
   // Get current data
   const data = { features, ganttPos };

@@ -1,4 +1,340 @@
 {
-  "features": [],
-  "ganttPos": {}
+  "features": [
+    {
+      "id": "f01",
+      "name": "Monorepo + CI/CD Setup",
+      "module": "infra",
+      "days": 1,
+      "phase": "plan",
+      "desc": ""
+    },
+    {
+      "id": "f02",
+      "name": "Database Schema Setup",
+      "module": "infra",
+      "days": 1,
+      "phase": "plan",
+      "desc": ""
+    },
+    {
+      "id": "f03",
+      "name": "Auth — Phone OTP + Admin Login",
+      "module": "infra",
+      "days": 3,
+      "phase": "plan",
+      "desc": ""
+    },
+    {
+      "id": "f07",
+      "name": "Image Upload + Storage CDN",
+      "module": "backoffice",
+      "days": 2,
+      "phase": "plan"
+    },
+    {
+      "id": "f05",
+      "name": "Product CRUD",
+      "module": "backoffice",
+      "days": 5,
+      "phase": "plan"
+    },
+    {
+      "id": "f06",
+      "name": "Category + Brand Management",
+      "module": "backoffice",
+      "days": 2,
+      "phase": "plan"
+    },
+    {
+      "id": "f08",
+      "name": "Inventory Management",
+      "module": "backoffice",
+      "days": 3,
+      "phase": "plan"
+    },
+    {
+      "name": "Register / Login Flow",
+      "days": 2,
+      "module": "mobile",
+      "phase": "plan",
+      "desc": "",
+      "id": "u1779296597318"
+    },
+    {
+      "name": "Home Page",
+      "days": 3,
+      "module": "mobile",
+      "phase": "plan",
+      "desc": "",
+      "id": "u1779296623343"
+    },
+    {
+      "id": "f09",
+      "name": "Order Management Backoffice",
+      "module": "backoffice",
+      "days": 3,
+      "phase": "m1"
+    },
+    {
+      "id": "f10",
+      "name": "Banner / Homepage Promotion",
+      "module": "backoffice",
+      "days": 2,
+      "phase": "m1"
+    },
+    {
+      "id": "f13",
+      "name": "Product Listing + Category Browse",
+      "module": "mobile",
+      "days": 6,
+      "phase": "m1",
+      "desc": ""
+    },
+    {
+      "id": "f15",
+      "name": "Product Detail Screen",
+      "module": "mobile",
+      "days": 2,
+      "phase": "m1"
+    },
+    {
+      "id": "f16",
+      "name": "Cart Flow",
+      "module": "mobile",
+      "days": 4,
+      "phase": "m1",
+      "desc": ""
+    },
+    {
+      "id": "f14",
+      "name": "Search Flow + Screen",
+      "module": "mobile",
+      "days": 3,
+      "phase": "m1",
+      "desc": ""
+    },
+    {
+      "id": "f33",
+      "name": "Hardcode Discount (simple code)",
+      "module": "discount",
+      "days": 2,
+      "phase": "m1",
+      "note": "P1 — basic"
+    },
+    {
+      "id": "f26",
+      "name": "Search Engine — Setup + Indexing",
+      "module": "integration",
+      "days": 2,
+      "phase": "m1"
+    },
+    {
+      "id": "f29",
+      "name": "OMS — Order Push",
+      "module": "integration",
+      "days": 4,
+      "phase": "m1"
+    },
+    {
+      "id": "f27",
+      "name": "Payment Gateway — Integration + Webhook",
+      "module": "integration",
+      "days": 4,
+      "phase": "m1"
+    },
+    {
+      "id": "f28",
+      "name": "Shipping",
+      "module": "integration",
+      "days": 2,
+      "phase": "m1",
+      "desc": ""
+    },
+    {
+      "id": "f31",
+      "name": "Push Notification — Setup",
+      "module": "integration",
+      "days": 2,
+      "phase": "m1"
+    },
+    {
+      "id": "f19",
+      "name": "Order Tracking + History",
+      "module": "mobile",
+      "days": 5,
+      "phase": "m2",
+      "desc": ""
+    },
+    {
+      "id": "f18",
+      "name": "Checkout Flow",
+      "module": "mobile",
+      "days": 3,
+      "phase": "m2"
+    },
+    {
+      "id": "f20",
+      "name": "Customer Account + Profile",
+      "module": "mobile",
+      "days": 2,
+      "phase": "m2"
+    },
+    {
+      "id": "f30",
+      "name": "Email — Order Confirmation",
+      "module": "integration",
+      "days": 1,
+      "phase": "m2"
+    },
+    {
+      "id": "f36",
+      "name": "UAT + Bug Fix Sprint",
+      "module": "uat",
+      "days": 7,
+      "phase": "m2"
+    },
+    {
+      "id": "f04",
+      "name": "Error Monitoring",
+      "module": "infra",
+      "days": 1,
+      "phase": "p2"
+    },
+    {
+      "id": "f11",
+      "name": "Staff + Role Management",
+      "module": "backoffice",
+      "days": 2,
+      "phase": "p2"
+    },
+    {
+      "id": "f12",
+      "name": "Dashboard ยอดขาย",
+      "module": "backoffice",
+      "days": 3,
+      "phase": "p2"
+    },
+    {
+      "id": "f17",
+      "name": "Address Management",
+      "module": "mobile",
+      "days": 2,
+      "phase": "p2"
+    },
+    {
+      "id": "f22",
+      "name": "Wishlist",
+      "module": "mobile",
+      "days": 2,
+      "phase": "p2"
+    },
+    {
+      "id": "f23",
+      "name": "Flash Sale",
+      "module": "mobile",
+      "days": 4,
+      "phase": "p2"
+    },
+    {
+      "id": "f24",
+      "name": "Product Reviews",
+      "module": "mobile",
+      "days": 3,
+      "phase": "p2"
+    },
+    {
+      "id": "f25",
+      "name": "AI Product Recommendations",
+      "module": "mobile",
+      "days": 7,
+      "phase": "p2"
+    },
+    {
+      "id": "f32",
+      "name": "OMS — Stock Sync Webhook",
+      "module": "integration",
+      "days": 3,
+      "phase": "p2"
+    },
+    {
+      "id": "f34",
+      "name": "Full Coupon System",
+      "module": "discount",
+      "days": 8,
+      "phase": "p2"
+    },
+    {
+      "id": "f35",
+      "name": "Coupon Stacking + Brand + Double Day",
+      "module": "discount",
+      "days": 5,
+      "phase": "p2"
+    },
+    {
+      "id": "f37",
+      "name": "Seller Portal + Onboarding",
+      "module": "seller",
+      "days": 10,
+      "phase": "p2"
+    },
+    {
+      "id": "f38",
+      "name": "Settlement + Payout Report",
+      "module": "seller",
+      "days": 8,
+      "phase": "p2"
+    },
+    {
+      "id": "f39",
+      "name": "In-app Chat",
+      "module": "seller",
+      "days": 7,
+      "phase": "p2"
+    },
+    {
+      "id": "f40",
+      "name": "CRM + Segmentation",
+      "module": "seller",
+      "days": 8,
+      "phase": "p2"
+    },
+    {
+      "id": "f41",
+      "name": "Loyalty Points / Cashback",
+      "module": "seller",
+      "days": 6,
+      "phase": "p2"
+    }
+  ],
+  "ganttPos": {
+    "f01": 0,
+    "f02": 1,
+    "f03": 2,
+    "f05": 2,
+    "f06": 6,
+    "f07": 2,
+    "f13": 0,
+    "f14": 7,
+    "f15": 2,
+    "f26": 12,
+    "f08": 7,
+    "f09": 0,
+    "f10": 5,
+    "f11": 0,
+    "f16": 4,
+    "f17": 0,
+    "f18": 2,
+    "f19": 0,
+    "f20": 7,
+    "f21": 7,
+    "f27": 16,
+    "f28": 17,
+    "f29": 14,
+    "f30": 0,
+    "f31": 18,
+    "f33": 10,
+    "f36": 0,
+    "u1779296597318": 5,
+    "u1779296623343": 7
+  }
 }

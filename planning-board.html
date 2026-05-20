@@ -18,6 +18,7 @@
   .view-btn { transition:all .15s; }
   #modal-bg { backdrop-filter:blur(3px); }
 </style>
+<script id="seed-data" type="application/json">null</script>
 </head>
 <body class="bg-slate-100 min-h-screen p-5">
 <div class="max-w-7xl mx-auto">
@@ -33,6 +34,7 @@
         <button id="btn-gantt" onclick="setView('gantt')" class="view-btn px-3 py-1.5 rounded-md text-xs font-medium text-slate-500">▥ Gantt</button>
       </div>
       <button onclick="openModal(null)" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700">＋ Feature</button>
+      <button onclick="exportHTML()" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-500 hover:bg-slate-50" title="Export & embed data into HTML file">⬇ Export</button>
       <button onclick="resetAll()" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-500 hover:bg-slate-50">↺ Reset</button>
     </div>
   </div>
@@ -299,8 +301,19 @@ let activeFilter = null;
 let currentView = 'board';
 
 function load() {
-  try { const s=localStorage.getItem(STORAGE_KEY); if(s){ features=JSON.parse(s); } else { features=DEFAULTS.map(f=>({...f})); } } catch(e){ features=DEFAULTS.map(f=>({...f})); }
-  try { const p=localStorage.getItem(POS_KEY); if(p) ganttPos=JSON.parse(p); } catch(e){}
+  function seedData() {
+    try { const el=document.getElementById('seed-data'); const d=JSON.parse(el?.textContent||'null'); return d; } catch(e){ return null; }
+  }
+  try {
+    const s=localStorage.getItem(STORAGE_KEY);
+    if (s) { features=JSON.parse(s); }
+    else { const d=seedData(); features=d?.features||DEFAULTS.map(f=>({...f})); }
+  } catch(e){ features=DEFAULTS.map(f=>({...f})); }
+  try {
+    const p=localStorage.getItem(POS_KEY);
+    if (p) { ganttPos=JSON.parse(p); }
+    else { const d=seedData(); if(d?.ganttPos) ganttPos=d.ganttPos; }
+  } catch(e){}
 }
 
 function savePos() { localStorage.setItem(POS_KEY, JSON.stringify(ganttPos)); }
@@ -768,6 +781,37 @@ function resetAll() {
   localStorage.setItem(STORAGE_KEY,JSON.stringify(features));
   renderBoard();
   updateLegend();
+}
+
+// ══════════════════════════════════════════════════════════
+//  EXPORT TO HTML (embed data for sharing)
+// ══════════════════════════════════════════════════════════
+function exportHTML() {
+  // Get current data
+  const data = { features, ganttPos };
+  const json = JSON.stringify(data);
+
+  // Read current HTML and embed data
+  fetch(location.href)
+    .then(r => r.text())
+    .then(html => {
+      // Replace seed-data content
+      const updated = html.replace(
+        /<script id="seed-data" type="application\/json">[\s\S]*?<\/script>/,
+        `<script id="seed-data" type="application/json">${json}<\/script>`
+      );
+      // Download as file
+      const blob = new Blob([updated], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'planning-board.html';
+      a.click(); URL.revokeObjectURL(url);
+    })
+    .catch(() => {
+      // Fallback: show JSON for manual paste
+      const txt = `แทนที่ข้อมูลใน <script id="seed-data"> ด้วยข้อมูลด้านล่าง แล้ว commit ขึ้น GitHub:\n\n${json}`;
+      alert(txt);
+    });
 }
 
 // ══════════════════════════════════════════════════════════

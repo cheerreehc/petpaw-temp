@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PetPaw — Feature Planning Board</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: system-ui,-apple-system,sans-serif; }
+  .card { cursor: grab; user-select: none; transition: box-shadow .15s, opacity .15s; }
+  .card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.1); }
+  .card:hover .card-edit { opacity:1; }
+  .card-edit { opacity:0; transition: opacity .15s; }
+  .card.dragging { opacity:.3; }
+  .drop-zone { min-height:60px; transition: background .15s, outline .15s; }
+  .drop-zone.over { background:rgba(99,102,241,.07); outline:2px dashed #818cf8; border-radius:10px; }
+  .view-btn.active { background:#1e293b; color:#fff; }
+  .view-btn { transition:all .15s; }
+  #modal-bg { backdrop-filter:blur(3px); }
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen p-5">
+<div class="max-w-7xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-4 flex items-end justify-between flex-wrap gap-2">
+    <div>
+      <h1 class="text-xl font-bold text-slate-800">🐾 PetPaw — Feature Planning Board</h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="flex bg-white border border-slate-200 rounded-lg p-0.5 gap-0.5">
+        <button id="btn-board" onclick="setView('board')" class="view-btn active px-3 py-1.5 rounded-md text-xs font-medium text-slate-600">⠿ Board</button>
+        <button id="btn-gantt" onclick="setView('gantt')" class="view-btn px-3 py-1.5 rounded-md text-xs font-medium text-slate-500">▥ Gantt</button>
+      </div>
+      <button onclick="openModal(null)" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700">＋ Feature</button>
+      <button onclick="resetAll()" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-500 hover:bg-slate-50">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- Legend/Filter -->
+  <div id="legend-bar" class="flex flex-wrap gap-1.5 mb-4 items-center">
+    <span class="text-xs text-slate-400 mr-1">Filter:</span>
+    <span data-mod="infra"       class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">⚙️ Infra</span>
+    <span data-mod="backoffice"  class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">🖥️ Backoffice</span>
+    <span data-mod="mobile"      class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">📱 Mobile</span>
+    <span data-mod="web"         class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">🌐 Web</span>
+    <span data-mod="api"         class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">⚡ API</span>
+    <span data-mod="integration" class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">🔗 Integration</span>
+    <span data-mod="discount"    class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">🎟️ Discount</span>
+    <span data-mod="design"      class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">🎨 Design</span>
+    <span data-mod="devops"      class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">🚀 DevOps</span>
+    <span data-mod="analytics"   class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">📊 Analytics</span>
+    <span data-mod="security"    class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">🔒 Security</span>
+    <span data-mod="mgmt"        class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">📋 Management</span>
+    <span data-mod="uat"         class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">🧪 UAT</span>
+    <span data-mod="seller"      class="leg hidden px-2 py-0.5 rounded text-xs font-medium bg-white border border-slate-300 text-slate-600 cursor-pointer select-none hover:bg-slate-100 transition-colors">🏪 Seller</span>
+  </div>
+
+  <!-- BOARD VIEW -->
+  <div id="view-board">
+    <div class="grid grid-cols-4 gap-3">
+
+      <div>
+        <div class="bg-white rounded-xl p-3.5 mb-3 shadow-sm border border-green-200">
+          <div class="flex items-start justify-between mb-2">
+            <div><div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span><h2 class="text-sm font-bold text-slate-800">Planning &amp; Setup</h2></div><p class="text-xs text-slate-400 mt-0.5">20–31 พ.ค. 2026</p></div>
+            <div class="text-right"><div id="plan-days" class="text-xl font-bold text-slate-800">—</div><div class="text-xs text-slate-400">dev-days</div></div>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mb-1.5"><div id="plan-bar" class="h-1.5 rounded-full transition-all bg-green-400" style="width:0%"></div></div>
+          <div class="flex justify-between text-xs"><span id="plan-label" class="text-slate-400">—</span><span class="text-slate-300">Budget 20d</span></div>
+          <div id="plan-warn" class="hidden mt-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5"></div>
+        </div>
+        <div id="zone-plan" class="drop-zone space-y-1.5 p-1"></div>
+        <button onclick="openModal(null,'plan')" class="mt-1.5 w-full text-xs text-slate-400 hover:text-green-600 py-1.5 border border-dashed border-slate-300 rounded-lg hover:border-green-300 transition-colors">＋ เพิ่ม</button>
+      </div>
+
+      <div>
+        <div class="bg-white rounded-xl p-3.5 mb-3 shadow-sm border border-blue-100">
+          <div class="flex items-start justify-between mb-2">
+            <div><div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block"></span><h2 class="text-sm font-bold text-slate-800">มิถุนายน 2026</h2></div><p class="text-xs text-slate-400">1–28 มิ.ย. · สัปดาห์ 1–4</p></div>
+            <div class="text-right"><div id="m1-days" class="text-xl font-bold text-slate-800">—</div><div class="text-xs text-slate-400">dev-days</div></div>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mb-1.5"><div id="m1-bar" class="h-1.5 rounded-full transition-all bg-blue-400" style="width:0%"></div></div>
+          <div class="flex justify-between text-xs"><span id="m1-label" class="text-slate-400">—</span><span class="text-slate-300">Budget 40d</span></div>
+          <div id="m1-warn" class="hidden mt-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5"></div>
+        </div>
+        <div id="zone-m1" class="drop-zone space-y-1.5 p-1"></div>
+        <button onclick="openModal(null,'m1')" class="mt-1.5 w-full text-xs text-slate-400 hover:text-indigo-500 py-1.5 border border-dashed border-slate-300 rounded-lg hover:border-indigo-300 transition-colors">＋ เพิ่ม feature</button>
+      </div>
+
+      <div>
+        <div class="bg-white rounded-xl p-3.5 mb-3 shadow-sm border border-violet-100">
+          <div class="flex items-start justify-between mb-2">
+            <div><div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-violet-400 inline-block"></span><h2 class="text-sm font-bold text-slate-800">กรกฎาคม 2026</h2></div><p class="text-xs text-slate-400">29 มิ.ย.–26 ก.ค. · สัปดาห์ 5–8</p></div>
+            <div class="text-right"><div id="m2-days" class="text-xl font-bold text-slate-800">—</div><div class="text-xs text-slate-400">dev-days</div></div>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mb-1.5"><div id="m2-bar" class="h-1.5 rounded-full transition-all bg-violet-400" style="width:0%"></div></div>
+          <div class="flex justify-between text-xs"><span id="m2-label" class="text-slate-400">—</span><span class="text-slate-300">Budget 40d</span></div>
+          <div id="m2-warn" class="hidden mt-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5"></div>
+        </div>
+        <div id="zone-m2" class="drop-zone space-y-1.5 p-1"></div>
+        <button onclick="openModal(null,'m2')" class="mt-1.5 w-full text-xs text-slate-400 hover:text-indigo-500 py-1.5 border border-dashed border-slate-300 rounded-lg hover:border-indigo-300 transition-colors">＋ เพิ่ม feature</button>
+      </div>
+
+      <div>
+        <div class="bg-white rounded-xl p-3.5 mb-3 shadow-sm border border-slate-200">
+          <div class="flex items-start justify-between mb-2">
+            <div><div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span><h2 class="text-sm font-bold text-slate-800">Phase 2+</h2></div><p class="text-xs text-slate-400">หลัง launch</p></div>
+            <div class="text-right"><div id="p2-days" class="text-xl font-bold text-slate-400">—</div><div class="text-xs text-slate-400">dev-days</div></div>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mb-1.5"></div>
+          <div class="text-xs text-slate-300">implement หลัง Phase 1</div>
+        </div>
+        <div id="zone-p2" class="drop-zone space-y-1.5 p-1"></div>
+        <button onclick="openModal(null,'p2')" class="mt-1.5 w-full text-xs text-slate-400 hover:text-indigo-500 py-1.5 border border-dashed border-slate-300 rounded-lg hover:border-indigo-300 transition-colors">＋ เพิ่ม feature</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GANTT VIEW -->
+  <div id="view-gantt" class="hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="flex border-b border-slate-200 bg-slate-50">
+        <div class="w-60 shrink-0 px-4 py-2.5 text-xs font-semibold text-slate-500 border-r border-slate-200">Feature</div>
+        <div class="flex-1">
+          <div class="grid" style="grid-template-columns:20% 40% 40%">
+            <div class="text-center py-1 text-xs font-semibold text-green-700 border-r border-slate-300 bg-green-50/60">พ.ค. Planning &amp; Setup</div>
+            <div class="text-center py-1 text-xs font-semibold text-blue-600 border-r border-slate-300 bg-blue-50/40">มิถุนายน 2026</div>
+            <div class="text-center py-1 text-xs font-semibold text-violet-600 bg-violet-50/40">กรกฎาคม 2026</div>
+          </div>
+          <div class="grid border-t border-slate-200" style="grid-template-columns:repeat(10,10%)">
+            <div class="text-center py-1 text-xs text-slate-400 border-r border-slate-100">20 พ.ค.</div>
+            <div class="text-center py-1 text-xs text-slate-400 border-r border-green-200">27 พ.ค.</div>
+            <div class="text-center py-1 text-xs text-slate-400 border-r border-slate-100">1 มิ.ย.</div>
+            <div class="text-center py-1 text-xs text-slate-400 border-r border-slate-100">8 มิ.ย.</div>
+            <div class="text-center py-1 text-xs text-slate-400 border-r border-slate-100">15 มิ.ย.</div>
+            <div class="text-center py-1 text-xs text-slate-400 border-r border-slate-300">22 มิ.ย.</div>
+            <div class="text-center py-1 text-xs text-slate-400 border-r border-slate-100">29 มิ.ย.</div>
+            <div class="text-center py-1 text-xs text-slate-400 border-r border-slate-100">6 ก.ค.</div>
+            <div class="text-center py-1 text-xs text-slate-400 border-r border-slate-100">13 ก.ค.</div>
+            <div class="text-center py-1 text-xs text-slate-400">20 ก.ค.</div>
+          </div>
+        </div>
+        <div class="w-12 shrink-0 border-l border-slate-200 py-2.5 text-center text-xs font-semibold text-slate-400">d</div>
+      </div>
+      <div id="gantt-body" class="divide-y divide-slate-100"></div>
+      <div class="flex border-t-2 border-dashed border-slate-200 bg-slate-50/60">
+        <div class="w-60 shrink-0 px-4 py-2 text-xs font-semibold text-slate-400 border-r border-slate-200">🚀 Phase 2+</div>
+        <div class="flex-1 flex items-center px-3"><span id="gantt-p2-txt" class="text-xs text-slate-400"></span></div>
+        <div class="w-12 shrink-0 border-l border-slate-200 text-center py-2 text-xs text-slate-400" id="gantt-p2-d">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-bg" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md" onclick="event.stopPropagation()">
+    <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+      <h3 id="modal-title" class="text-base font-bold text-slate-800">เพิ่ม Feature</h3>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <input type="hidden" id="m-id">
+      <div>
+        <label class="text-xs font-semibold text-slate-500 block mb-1">ชื่อ Feature *</label>
+        <input id="m-name" type="text" placeholder="เช่น Product CRUD" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-semibold text-slate-500 block mb-1">Module *</label>
+          <select id="m-mod" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="infra">⚙️ Infra</option>
+            <option value="backoffice">🖥️ Backoffice</option>
+            <option value="mobile">📱 Mobile</option>
+            <option value="web">🌐 Web</option>
+            <option value="api">⚡ API</option>
+            <option value="integration">🔗 Integration</option>
+            <option value="discount">🎟️ Discount</option>
+            <option value="design">🎨 Design</option>
+            <option value="devops">🚀 DevOps</option>
+            <option value="analytics">📊 Analytics</option>
+            <option value="security">🔒 Security</option>
+            <option value="mgmt">📋 Management</option>
+            <option value="uat">🧪 UAT</option>
+            <option value="seller">🏪 Seller</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-500 block mb-1">Estimate (วัน) *</label>
+          <input id="m-days" type="number" min="1" max="60" placeholder="1–60" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 block mb-1">Phase</label>
+        <select id="m-phase" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <option value="plan">📋 Planning (พ.ค.)</option>
+          <option value="m1">📦 มิถุนายน</option>
+          <option value="m2">📦 เดือนที่ 2</option>
+          <option value="p2">🚀 Phase 2+</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 block mb-1">คำอธิบาย (สำหรับ discuss)</label>
+        <textarea id="m-desc" rows="3" placeholder="อธิบาย scope, เงื่อนไข หรือประเด็นที่ต้อง discuss..." class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+      <button id="m-del" onclick="deleteFeature()" class="hidden text-xs text-red-500 hover:text-red-700 font-medium">🗑 ลบ</button>
+      <div class="flex gap-2 ml-auto">
+        <button onclick="closeModal()" class="px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100">ยกเลิก</button>
+        <button onclick="saveModal()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════════
+const STORAGE_KEY = 'petpaw-board-v2';
+const POS_KEY = 'petpaw-gantt-pos';
+let ganttPos = {}; // { featureId: startDay }
+const BUDGET = 40; // 2 devs × 4 weeks × 5 days
+const BAR_COLORS = {
+  infra:'#94a3b8',backoffice:'#93c5fd',mobile:'#c4b5fd',web:'#67e8f9',
+  api:'#a5b4fc',integration:'#fcd34d',discount:'#86efac',design:'#f0abfc',
+  devops:'#6ee7b7',analytics:'#fdba74',security:'#fbbf24', mgmt:'#c7d2fe',uat:'#fca5a5',seller:'#f9a8d4'
+};
+const MOD = {
+  infra:       {label:'⚙️ Infra',       bg:'bg-slate-100',   tx:'text-slate-600',  bd:'border-slate-300' },
+  backoffice:  {label:'🖥️ Backoffice',  bg:'bg-blue-50',     tx:'text-blue-600',   bd:'border-blue-200'  },
+  mobile:      {label:'📱 Mobile',      bg:'bg-violet-50',   tx:'text-violet-600', bd:'border-violet-200'},
+  web:         {label:'🌐 Web',         bg:'bg-cyan-50',     tx:'text-cyan-600',   bd:'border-cyan-200'  },
+  api:         {label:'⚡ API',         bg:'bg-indigo-50',   tx:'text-indigo-600', bd:'border-indigo-200'},
+  integration: {label:'🔗 Integration', bg:'bg-amber-50',    tx:'text-amber-700',  bd:'border-amber-200' },
+  discount:    {label:'🎟️ Discount',    bg:'bg-green-50',    tx:'text-green-700',  bd:'border-green-200' },
+  design:      {label:'🎨 Design',      bg:'bg-fuchsia-50',  tx:'text-fuchsia-600',bd:'border-fuchsia-200'},
+  devops:      {label:'🚀 DevOps',      bg:'bg-emerald-50',  tx:'text-emerald-700',bd:'border-emerald-200'},
+  analytics:   {label:'📊 Analytics',   bg:'bg-orange-50',   tx:'text-orange-600', bd:'border-orange-200'},
+  security:    {label:'🔒 Security',    bg:'bg-yellow-50',   tx:'text-yellow-700', bd:'border-yellow-200'},
+  uat:         {label:'🧪 UAT',         bg:'bg-red-50',      tx:'text-red-600',    bd:'border-red-200'   },
+  mgmt:        {label:'📋 Management', bg:'bg-indigo-50',  tx:'text-indigo-500', bd:'border-indigo-200' },
+  seller:      {label:'🏪 Seller',      bg:'bg-pink-50',     tx:'text-pink-600',   bd:'border-pink-200'  },
+};
+
+const DEFAULTS = [
+  {id:'f01',name:'Monorepo + CI/CD Setup',                  module:'infra',       days:3, phase:'m1'},
+  {id:'f02',name:'Database Schema Setup',                   module:'infra',       days:3, phase:'m1'},
+  {id:'f03',name:'Auth — Phone OTP + Admin Login',          module:'infra',       days:5, phase:'m1'},
+  {id:'f04',name:'Error Monitoring',                        module:'infra',       days:1, phase:'m1'},
+  {id:'f05',name:'Product CRUD',                            module:'backoffice',  days:4, phase:'m1'},
+  {id:'f06',name:'Category + Brand Management',             module:'backoffice',  days:2, phase:'m1'},
+  {id:'f07',name:'Image Upload + Storage CDN',              module:'backoffice',  days:2, phase:'m1'},
+  {id:'f08',name:'Inventory Management',                    module:'backoffice',  days:3, phase:'m2'},
+  {id:'f09',name:'Order Management Backoffice',             module:'backoffice',  days:3, phase:'m2'},
+  {id:'f10',name:'Banner / Homepage Promotion',             module:'backoffice',  days:2, phase:'m2'},
+  {id:'f11',name:'Staff + Role Management',                 module:'backoffice',  days:2, phase:'m2'},
+  {id:'f12',name:'Dashboard ยอดขาย',                       module:'backoffice',  days:3, phase:'p2'},
+  {id:'f13',name:'Product Listing + Category Browse',       module:'mobile',      days:3, phase:'m1'},
+  {id:'f14',name:'Search Screen',                           module:'mobile',      days:2, phase:'m1'},
+  {id:'f15',name:'Product Detail Screen',                   module:'mobile',      days:2, phase:'m1'},
+  {id:'f16',name:'Cart',                                    module:'mobile',      days:3, phase:'m2'},
+  {id:'f17',name:'Address Management',                      module:'mobile',      days:2, phase:'m2'},
+  {id:'f18',name:'Checkout Flow',                           module:'mobile',      days:3, phase:'m2'},
+  {id:'f19',name:'Order Tracking',                          module:'mobile',      days:2, phase:'m2'},
+  {id:'f20',name:'Customer Account + Profile',              module:'mobile',      days:2, phase:'m2'},
+  {id:'f21',name:'Order History',                           module:'mobile',      days:1, phase:'m2'},
+  {id:'f22',name:'Wishlist',                                module:'mobile',      days:2, phase:'p2'},
+  {id:'f23',name:'Flash Sale',                              module:'mobile',      days:4, phase:'p2'},
+  {id:'f24',name:'Product Reviews',                         module:'mobile',      days:3, phase:'p2'},
+  {id:'f25',name:'AI Product Recommendations',              module:'mobile',      days:7, phase:'p2'},
+  {id:'f26',name:'Search Engine — Setup + Indexing',        module:'integration', days:2, phase:'m1'},
+  {id:'f27',name:'Payment Gateway — Integration + Webhook', module:'integration', days:4, phase:'m2'},
+  {id:'f28',name:'Shipping — Rate + Booking + Tracking',    module:'integration', days:4, phase:'m2'},
+  {id:'f29',name:'OMS — Order Push',                        module:'integration', days:4, phase:'m2'},
+  {id:'f30',name:'Email — Order Confirmation',              module:'integration', days:1, phase:'m2'},
+  {id:'f31',name:'Push Notification — Setup',               module:'integration', days:2, phase:'m2'},
+  {id:'f32',name:'OMS — Stock Sync Webhook',                module:'integration', days:3, phase:'p2'},
+  {id:'f33',name:'Hardcode Discount (simple code)',         module:'discount',    days:1, phase:'m2', note:'P1 — basic'},
+  {id:'f34',name:'Full Coupon System',                      module:'discount',    days:8, phase:'p2'},
+  {id:'f35',name:'Coupon Stacking + Brand + Double Day',    module:'discount',    days:5, phase:'p2'},
+  {id:'f36',name:'UAT + Bug Fix Sprint',                    module:'uat',         days:7, phase:'m2'},
+  {id:'f37',name:'Seller Portal + Onboarding',              module:'seller',      days:10,phase:'p2'},
+  {id:'f38',name:'Settlement + Payout Report',              module:'seller',      days:8, phase:'p2'},
+  {id:'f39',name:'In-app Chat',                             module:'seller',      days:7, phase:'p2'},
+  {id:'f40',name:'CRM + Segmentation',                      module:'seller',      days:8, phase:'p2'},
+  {id:'f41',name:'Loyalty Points / Cashback',               module:'seller',      days:6, phase:'p2'},
+];
+
+// ══════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════
+let features = [];
+let draggingEl = null;
+let activeFilter = null;
+let currentView = 'board';
+
+function load() {
+  try { const s=localStorage.getItem(STORAGE_KEY); if(s){ features=JSON.parse(s); } else { features=DEFAULTS.map(f=>({...f})); } } catch(e){ features=DEFAULTS.map(f=>({...f})); }
+  try { const p=localStorage.getItem(POS_KEY); if(p) ganttPos=JSON.parse(p); } catch(e){}
+}
+
+function savePos() { localStorage.setItem(POS_KEY, JSON.stringify(ganttPos)); }
+
+function save() {
+  // rebuild features array in exact DOM order (preserves drag order across reload)
+  const ordered = [];
+  ['plan','m1','m2','p2'].forEach(ph => {
+    document.querySelectorAll(`#zone-${ph} .card`).forEach(c => {
+      const f = features.find(x => x.id === c.dataset.id);
+      if (f) ordered.push({ ...f, phase: ph });
+    });
+  });
+  features = ordered;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(features));
+}
+
+// ══════════════════════════════════════════════════════════
+//  CARD FACTORY
+// ══════════════════════════════════════════════════════════
+function timeBadge(days) {
+  const w = days / 10; // 2 devs x 5 days
+  if (w < 1) return `${days}d`;
+  return `${days}d · ~${Number.isInteger(w) ? w : w.toFixed(1)} สัปดาห์`;
+}
+
+function makeCard(f) {
+  const m = MOD[f.module] || MOD.infra;
+  const el = document.createElement('div');
+  el.id = `card-${f.id}`;
+  el.className = `card bg-white border ${m.bd} rounded-lg px-2.5 py-2 shadow-sm flex items-center justify-between gap-2`;
+  el.draggable = true;
+  el.dataset.id = f.id;
+  el.dataset.days = f.days;
+  el.dataset.module = f.module;
+  el.innerHTML = `
+    <div class="flex items-center gap-1.5 min-w-0 flex-1" title="${f.desc||''}">
+      <span class="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium ${m.bg} ${m.tx}">${m.label}</span>
+      <span class="text-xs text-slate-700 font-medium truncate">${f.name}</span>
+      ${f.desc?'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>':''}
+      ${f.note?`<span class="shrink-0 text-xs italic text-slate-400">${f.note}</span>`:''}
+    </div>
+    <div class="flex items-center gap-1 shrink-0">
+      <span class="text-xs font-bold text-slate-500 bg-slate-100 rounded-full px-2 py-0.5 whitespace-nowrap">${timeBadge(f.days)}</span>
+      <button class="card-edit text-slate-300 hover:text-indigo-500 px-1" onclick="openModal('${f.id}')" title="แก้ไข">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+    </div>`;
+
+  // ── Drag events ──────────────────────────────────────────
+  el.addEventListener('dragstart', e => {
+    draggingEl = el;
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => el.classList.add('dragging'), 0);
+  });
+
+  el.addEventListener('dragend', () => {
+    el.classList.remove('dragging');
+    document.querySelectorAll('.over').forEach(z=>z.classList.remove('over'));
+    draggingEl = null;
+    save();
+    updateStats();
+    if(currentView==='gantt') renderGantt();
+  });
+
+  // ── Reorder within zone ──────────────────────────────────
+  el.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!draggingEl || draggingEl===el) return;
+    const rect = el.getBoundingClientRect();
+    const zone = el.parentElement;
+    if (e.clientY < rect.top + rect.height/2) {
+      zone.insertBefore(draggingEl, el);
+    } else {
+      zone.insertBefore(draggingEl, el.nextElementSibling);
+    }
+  });
+
+  return el;
+}
+
+// ══════════════════════════════════════════════════════════
+//  DROP ZONES
+// ══════════════════════════════════════════════════════════
+function setupZone(zoneEl) {
+  zoneEl.addEventListener('dragover', e => {
+    e.preventDefault();
+    zoneEl.classList.add('over');
+    if (!draggingEl) return;
+    // only act when dragging directly over the zone background (not a card)
+    if (e.target === zoneEl) zoneEl.appendChild(draggingEl);
+  });
+  zoneEl.addEventListener('dragleave', e => {
+    if (!zoneEl.contains(e.relatedTarget)) zoneEl.classList.remove('over');
+  });
+  zoneEl.addEventListener('drop', e => {
+    e.preventDefault();
+    zoneEl.classList.remove('over');
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  RENDER BOARD
+// ══════════════════════════════════════════════════════════
+function renderBoard() {
+  ['plan','m1','m2','p2'].forEach(ph => {
+    const zone = document.getElementById(`zone-${ph}`);
+    zone.innerHTML = '';
+    features.filter(f=>f.phase===ph).forEach(f => zone.appendChild(makeCard(f)));
+  });
+  updateStats();
+}
+
+// ══════════════════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════════════════
+function humanWeeks(total) {
+  if(!total) return '—';
+  const w = Math.round((total/10)*2)/2; // 2 devs × 5 days = 10 dev-days/week
+  if(w < 1) return 'น้อยกว่า 1 สัปดาห์';
+  if(w < 4) return `~${w%1===0?w:w.toFixed(1)} สัปดาห์`;
+  if(w < 5) return '~1 เดือน';
+  if(w < 7) return '~1 เดือนครึ่ง';
+  return '~2 เดือน';
+}
+
+function statCol(ph, barId, daysId, labelId, warnId, barCls, budget) {
+  budget = budget || BUDGET;
+  const total = [...document.querySelectorAll(`#zone-${ph} .card`)].reduce((s,c)=>s+parseInt(c.dataset.days),0);
+  const pct = Math.min((total/budget)*100,100);
+  if(daysId) { const el = document.getElementById(daysId); if(el) el.textContent = total||'—'; }
+  if(labelId) document.getElementById(labelId).textContent = humanWeeks(total);
+  if(barId){
+    const b=document.getElementById(barId);
+    b.style.width=pct+'%';
+    b.className=`h-1.5 rounded-full transition-all ${total>BUDGET?'bg-red-500':total>BUDGET*.8?'bg-amber-400':barCls}`;
+  }
+  if(warnId){
+    const w=document.getElementById(warnId);
+    if(total>BUDGET){w.className='mt-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5 bg-red-50 text-red-600';w.textContent=`⚠️ เกิน budget ${total-BUDGET}d`;w.classList.remove('hidden');}
+    else if(total>BUDGET*.8){w.className='mt-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5 bg-amber-50 text-amber-700';w.textContent=`⚡ buffer เหลือ ${BUDGET-total}d`;w.classList.remove('hidden');}
+    else w.classList.add('hidden');
+  }
+  return total;
+}
+
+function updateStats() {
+  statCol('plan','plan-bar','plan-days','plan-label','plan-warn','bg-green-400', 20);
+  statCol('m1','m1-bar','m1-days','m1-label','m1-warn','bg-blue-400');
+  statCol('m2','m2-bar','m2-days','m2-label','m2-warn','bg-violet-400');
+  const t2=[...document.querySelectorAll('#zone-p2 .card')].reduce((s,c)=>s+parseInt(c.dataset.days),0);
+  document.getElementById('p2-days').textContent=t2||'—';
+}
+
+// ══════════════════════════════════════════════════════════
+//  GANTT — free-position · drag bar = move · drag edge = resize · click = edit
+// ══════════════════════════════════════════════════════════
+// Section config: each phase maps to a % slice of the timeline
+const GSEC = {
+  plan: { offset: 0,  width: 20, days: 10 }, // พ.ค. planning ~2 weeks
+  m1:   { offset: 20, width: 40, days: 20 }, // มิ.ย. ~4 weeks
+  m2:   { offset: 60, width: 40, days: 20 }, // ก.ค. ~4 weeks
+};
+
+function initStartDay(f) {
+  if (f.startDay === undefined) f.startDay = 0;
+}
+
+function renderGantt() {
+  const body = document.getElementById('gantt-body');
+  body.innerHTML = '';
+
+  function getPhaseFeatures(ph) {
+    return [...document.querySelectorAll(`#zone-${ph} .card`)]
+      .map(c => features.find(x=>x.id===c.dataset.id)).filter(Boolean);
+  }
+
+  const planF = getPhaseFeatures('plan');
+  const m1f   = getPhaseFeatures('m1');
+  const m2f   = getPhaseFeatures('m2');
+  const p2f   = getPhaseFeatures('p2');
+
+  // initialize ganttPos for new features
+  [...planF,...m1f,...m2f].forEach(f => { if(ganttPos[f.id]===undefined) ganttPos[f.id]=0; });
+
+  function sectionHead(label, bg, text) {
+    const d = document.createElement('div');
+    d.className = 'flex border-b border-slate-300';
+    d.style.background = bg;
+    d.innerHTML = `<div class="w-60 shrink-0 px-4 py-1.5 text-xs font-bold border-r border-slate-300" style="color:${text}">${label}</div><div class="flex-1"></div><div class="w-12 shrink-0 border-l border-slate-300"></div>`;
+    body.appendChild(d);
+  }
+
+  function featureRow(f) {
+    const m = MOD[f.module] || MOD.infra;
+    const sec = GSEC[f.phase] || GSEC.m1;
+    const sd  = Math.max(0, Math.min(ganttPos[f.id] ?? 0, sec.days - 1));
+    const spPct = sec.offset + (sd / sec.days) * sec.width;
+    const wPct  = Math.min(Math.max((f.days / sec.days) * sec.width, 1.5), sec.offset + sec.width - spPct);
+
+    const row = document.createElement('div');
+    row.className = 'flex items-center hover:bg-slate-50 transition-colors border-b border-slate-100';
+    row.dataset.fid = f.id;
+    row.innerHTML = `
+      <div class="w-60 shrink-0 flex items-center gap-1.5 px-2 py-1.5 border-r border-slate-100 min-w-0">
+        <span class="row-hdl shrink-0 text-slate-200 hover:text-slate-400 cursor-grab px-0.5" title="ลากเพื่อเรียงลำดับ">
+          <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="6" r="1.2"/><circle cx="6" cy="6" r="1.2"/><circle cx="2" cy="10" r="1.2"/><circle cx="6" cy="10" r="1.2"/></svg>
+        </span>
+        <span class="shrink-0 px-1.5 py-0.5 rounded text-xs ${m.bg} ${m.tx}">${m.label}</span>
+        <span class="text-xs text-slate-700 truncate">${f.name}</span>
+      </div>
+      <div class="g-tl flex-1 relative h-8 select-none"
+           style="background:repeating-linear-gradient(90deg,transparent,transparent calc(10% - 1px),#f1f5f9 calc(10% - 1px),#f1f5f9 10%)">
+        <div class="absolute top-0 bottom-0 w-px bg-green-200" style="left:20%"></div>
+        <div class="absolute top-0 bottom-0 w-px bg-slate-300" style="left:60%"></div>
+        <div class="g-bar absolute top-1 bottom-1 rounded flex items-center cursor-grab"
+             style="left:${spPct}%;width:${wPct}%;background:${BAR_COLORS[f.module]||'#94a3b8'};opacity:.9;overflow:hidden">
+          <span class="g-lbl text-xs font-bold text-slate-700 whitespace-nowrap px-1.5 leading-none pointer-events-none">${f.days}d</span>
+          <div class="g-hdl absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize flex items-center justify-center">
+            <div class="w-0.5 h-3 bg-slate-600/40 rounded pointer-events-none"></div>
+          </div>
+        </div>
+      </div>
+      <div class="g-dcol w-12 shrink-0 text-center text-xs text-slate-400 border-l border-slate-100 py-1.5">${f.days}d</div>`;
+    body.appendChild(row);
+
+    const tl   = row.querySelector('.g-tl');
+    const bar  = row.querySelector('.g-bar');
+    const hdl  = row.querySelector('.g-hdl');
+    const lbl  = row.querySelector('.g-lbl');
+    const dcol = row.querySelector('.g-dcol');
+
+    // drag bar = move start date (parallel ok)
+    bar.addEventListener('mousedown', e => {
+      if (e.target.closest('.g-hdl')) return;
+      e.preventDefault();
+      const startX = e.clientX, sd0 = ganttPos[f.id] ?? 0;
+      let dragging = false;
+      function onMove(ev) {
+        if (!dragging && Math.abs(ev.clientX-startX) > 3) {
+          dragging = true;
+          document.body.style.cursor = 'grabbing';
+          document.body.style.userSelect = 'none';
+          bar.style.boxShadow = '0 4px 14px rgba(0,0,0,.2)';
+          bar.style.zIndex = '10';
+        }
+        if (!dragging) return;
+        const tlW = tl.getBoundingClientRect().width;
+        const pxPerDay = (tlW * sec.width / 100) / sec.days;
+        const newSd = Math.max(0, Math.min(sec.days-1, Math.round(sd0+(ev.clientX-startX)/pxPerDay)));
+        ganttPos[f.id] = newSd;
+        const newSd2 = newSd; const newSp = sec.offset + (newSd2/sec.days)*sec.width;
+        const newW  = Math.min(Math.max((f.days/sec.days)*sec.width,1.5), sec.offset+sec.width-newSp);
+        bar.style.left = newSp+'%'; bar.style.width = newW+'%';
+      }
+      function onUp() {
+        document.removeEventListener('mousemove',onMove);
+        document.removeEventListener('mouseup',onUp);
+        document.body.style.cursor=''; document.body.style.userSelect='';
+        bar.style.boxShadow=''; bar.style.zIndex='';
+        if (!dragging) { openModal(f.id); return; }
+        savePos();
+      }
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+    });
+
+    // resize right edge = change duration
+    hdl.addEventListener('mousedown', e => {
+      e.preventDefault(); e.stopPropagation();
+      const tlW = tl.getBoundingClientRect().width;
+      const ppd = (tlW * sec.width / 100) / sec.days;
+      const x0 = e.clientX, d0 = f.days;
+      document.body.style.cursor='ew-resize'; document.body.style.userSelect='none';
+      function onMove(ev) {
+        const nd = Math.max(1, Math.min(sec.days, Math.round(d0+(ev.clientX-x0)/ppd)));
+        f.days = nd;
+        const curSp = sec.offset+((ganttPos[f.id]??0)/sec.days)*sec.width;
+        bar.style.width = Math.min(Math.max((nd/sec.days)*sec.width,1.5),sec.offset+sec.width-curSp)+'%';
+        lbl.textContent=`${nd}d`; dcol.textContent=`${nd}d`;
+        const card=document.getElementById(`card-${f.id}`);
+        if(card){card.dataset.days=nd;const b=card.querySelector('.bg-slate-100.rounded-full');if(b)b.textContent=timeBadge(nd);}
+      }
+      function onUp() {
+        document.body.style.cursor=''; document.body.style.userSelect='';
+        document.removeEventListener('mousemove',onMove);
+        document.removeEventListener('mouseup',onUp);
+        save(); updateStats();
+      }
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+    });
+
+    // ── Row drag-to-reorder via mouse on handle ──────────
+    const rowHdl = row.querySelector('.row-hdl');
+    if (rowHdl) {
+      rowHdl.addEventListener('mousedown', e => {
+        e.preventDefault(); e.stopPropagation();
+        let indicator = null, dragging = false;
+        const startY = e.clientY;
+
+        function onMove(ev) {
+          if (!dragging && Math.abs(ev.clientY - startY) > 4) {
+            dragging = true;
+            row.style.opacity = '0.4';
+            document.body.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none';
+          }
+          if (!dragging) return;
+          if (indicator) indicator.remove();
+          indicator = null;
+          const rows = [...body.querySelectorAll('[data-fid]')].filter(r => {
+            const rf = features.find(x=>x.id===r.dataset.fid);
+            return rf && rf.phase === f.phase && r !== row;
+          });
+          for (const r of rows) {
+            const rr = r.getBoundingClientRect();
+            if (ev.clientY >= rr.top - 4 && ev.clientY < rr.bottom + 4) {
+              indicator = document.createElement('div');
+              indicator.style.cssText = 'height:2px;background:#6366f1;pointer-events:none;position:relative;z-index:10;';
+              const before = ev.clientY < rr.top + rr.height / 2;
+              body.insertBefore(indicator, before ? r : r.nextSibling);
+              break;
+            }
+          }
+        }
+
+        function onUp(ev) {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+          document.body.style.cursor = ''; document.body.style.userSelect = '';
+          row.style.opacity = '';
+          if (indicator) indicator.remove();
+          if (!dragging) return;
+
+          // find target row under cursor
+          const rows = [...body.querySelectorAll('[data-fid]')].filter(r => {
+            const rf = features.find(x=>x.id===r.dataset.fid);
+            return rf && rf.phase === f.phase && r !== row;
+          });
+          let targetRow = null, insertBefore = true;
+          for (const r of rows) {
+            const rr = r.getBoundingClientRect();
+            if (ev.clientY >= rr.top - 4 && ev.clientY < rr.bottom + 4) {
+              targetRow = r; insertBefore = ev.clientY < rr.top + rr.height/2; break;
+            }
+          }
+          if (targetRow) {
+            // 1. reorder board zone cards
+            const zone = document.getElementById(`zone-${f.phase}`);
+            const srcCard = document.getElementById(`card-${f.id}`);
+            const tgtCard = document.getElementById(`card-${targetRow.dataset.fid}`);
+            if (zone && srcCard && tgtCard)
+              zone.insertBefore(srcCard, insertBefore ? tgtCard : tgtCard.nextElementSibling);
+            // 2. move gantt row in DOM (no re-render = bars keep their positions)
+            body.insertBefore(row, insertBefore ? targetRow : targetRow.nextSibling);
+            save();
+          }
+        }
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+    }
+  }
+
+  if (planF.length) {
+    sectionHead('พฤษภาคม 2026 — Planning &amp; Setup', '#f0fdf4', '#166534');
+    planF.forEach(f => featureRow(f));
+  }
+  if (m1f.length) {
+    sectionHead('มิถุนายน 2026 — 1–28 มิ.ย.', '#dbeafe', '#1d4ed8');
+    m1f.forEach(f => featureRow(f));
+  }
+  if (m2f.length) {
+    sectionHead('กรกฎาคม 2026 — 29 มิ.ย.–26 ก.ค.', '#ede9fe', '#6d28d9');
+    m2f.forEach(f => featureRow(f));
+  }
+
+  const p2total = p2f.reduce((s,f)=>s+f.days,0);
+  document.getElementById('gantt-p2-txt').textContent = p2f.length ? `${p2f.length} features · ${p2total} dev-days` : '';
+  document.getElementById('gantt-p2-d').textContent = p2total || '—';
+}
+
+// ══════════════════════════════════════════════════════════
+//  MODAL  CRUD
+// ══════════════════════════════════════════════════════════
+function openModal(id, defaultPhase='m1') {
+  const f = id ? features.find(x=>x.id===id) : null;
+  document.getElementById('modal-title').textContent = f?'แก้ไข Feature':'เพิ่ม Feature';
+  document.getElementById('m-id').value    = f?.id||'';
+  document.getElementById('m-name').value  = f?.name||'';
+  document.getElementById('m-mod').value   = f?.module||'backoffice';
+  document.getElementById('m-days').value  = f?.days||'';
+  document.getElementById('m-phase').value = f?.phase||defaultPhase;
+  document.getElementById('m-desc').value  = f?.desc||'';
+  document.getElementById('m-del').classList.toggle('hidden',!f);
+  document.getElementById('modal-bg').classList.remove('hidden');
+  document.getElementById('m-name').focus();
+}
+
+function closeModal() { document.getElementById('modal-bg').classList.add('hidden'); }
+
+function saveModal() {
+  const name=document.getElementById('m-name').value.trim();
+  const days=parseInt(document.getElementById('m-days').value);
+  if(!name||!days||days<1){alert('กรุณากรอกชื่อและจำนวนวัน');return;}
+  const id=document.getElementById('m-id').value;
+  const data={name,days,module:document.getElementById('m-mod').value,phase:document.getElementById('m-phase').value,desc:document.getElementById('m-desc').value.trim()};
+  if(id){const i=features.findIndex(f=>f.id===id);if(i>=0)features[i]={...features[i],...data};}
+  else{data.id='u'+Date.now();features.push(data);}
+  closeModal();
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(features));
+  renderBoard();
+  updateLegend();
+  if(currentView==='gantt') renderGantt();
+}
+
+function deleteFeature() {
+  if(!confirm('ลบ feature นี้?')) return;
+  const id=document.getElementById('m-id').value;
+  features=features.filter(f=>f.id!==id);
+  closeModal();
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(features));
+  renderBoard();
+  updateLegend();
+  if(currentView==='gantt') renderGantt();
+}
+
+// ══════════════════════════════════════════════════════════
+//  VIEW / FILTER / RESET
+// ══════════════════════════════════════════════════════════
+function setView(v) {
+  currentView=v;
+  document.getElementById('view-board').classList.toggle('hidden',v!=='board');
+  document.getElementById('view-gantt').classList.toggle('hidden',v!=='gantt');
+  document.getElementById('btn-board').classList.toggle('active',v==='board');
+  document.getElementById('btn-gantt').classList.toggle('active',v==='gantt');
+  if(v==='gantt') renderGantt();
+}
+
+function updateLegend() {
+  const used = new Set(features.map(f => f.module));
+  document.querySelectorAll('.leg').forEach(el => {
+    const mod = el.dataset.mod;
+    el.classList.toggle('hidden', !used.has(mod));
+    el.classList.toggle('bg-slate-800', activeFilter === mod);
+    el.classList.toggle('text-white',   activeFilter === mod);
+    el.classList.toggle('border-slate-800', activeFilter === mod);
+  });
+}
+
+function applyFilter(mod) {
+  activeFilter = activeFilter === mod ? null : mod;
+  document.querySelectorAll('.card').forEach(c =>
+    c.style.opacity = (!activeFilter || c.dataset.module === activeFilter) ? '1' : '0.1'
+  );
+  updateLegend();
+}
+
+function resetAll() {
+  if(!confirm('รีเซ็ตกลับ default?')) return;
+  features=DEFAULTS.map(f=>({...f}));
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(features));
+  renderBoard();
+  updateLegend();
+}
+
+// ══════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════
+load();
+['plan','m1','m2','p2'].forEach(ph => setupZone(document.getElementById(`zone-${ph}`)));
+document.querySelectorAll('.leg').forEach(el=>el.addEventListener('click',()=>applyFilter(el.dataset.mod)));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===document.getElementById('modal-bg'))closeModal();});
+renderBoard();
+updateLegend();
+</script>
+</body>
+</html>

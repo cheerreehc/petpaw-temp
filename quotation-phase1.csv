@@ -1,0 +1,72 @@
+เอกสารเสนอราคา — PetPaw E-Commerce Platform Phase 1,,,,
+,,,,
+โครงการ,PetPaw E-Commerce Platform — Phase 1,,,
+วันที่,21 พฤษภาคม 2026,,,
+ระยะเวลา,พฤษภาคม – กรกฎาคม 2026 (2 เดือน),,,
+ติดต่อ,o.muangmoon@gmail.com,,,
+,,,,
+================== ขอบเขตงาน (Scope of Work) ==================,,,,
+,,,,
+Phase,งาน,รายละเอียด,ระยะเวลา,หมายเหตุ
+Planning & Setup (พ.ค. 2026),Infrastructure & DevOps,ตั้งค่า Cloud Infrastructure / CI/CD Pipeline / Monitoring,พ.ค. 2026,
+Planning & Setup (พ.ค. 2026),Database Schema,ออกแบบโครงสร้างฐานข้อมูล,พ.ค. 2026,
+Planning & Setup (พ.ค. 2026),Authentication System,Login เบอร์โทร + OTP (ลูกค้า) / Email (Admin),พ.ค. 2026,
+Planning & Setup (พ.ค. 2026),UI/UX Backoffice,ออกแบบ MVP Backoffice,พ.ค. 2026,
+Planning & Setup (พ.ค. 2026),3rd Party Setup,เตรียม Credentials และทดสอบ API ทุก Service,พ.ค. 2026,
+,,,,
+Development Month 1 (มิ.ย. 2026),Product Management,จัดการสินค้า / หมวดหมู่ / Brand / รูปภาพ,มิ.ย. 2026,Backoffice
+Development Month 1 (มิ.ย. 2026),Order Management,ดู / จัดการคำสั่งซื้อ / อัปเดตสถานะ,มิ.ย. 2026,Backoffice
+Development Month 1 (มิ.ย. 2026),Inventory Management,ติดตาม Stock,มิ.ย. 2026,Backoffice
+Development Month 1 (มิ.ย. 2026),Banner & Promotion,จัดการแบนเนอร์หน้าแรก,มิ.ย. 2026,Backoffice
+Development Month 1 (มิ.ย. 2026),Register / Login,สมัครและ Login ด้วยเบอร์โทร + OTP,มิ.ย. 2026,Mobile App
+Development Month 1 (มิ.ย. 2026),Home Page,Banner / หมวดหมู่ / สินค้าแนะนำ,มิ.ย. 2026,Mobile App
+Development Month 1 (มิ.ย. 2026),Product Listing,แสดงสินค้า / กรองตามหมวดหมู่,มิ.ย. 2026,Mobile App
+Development Month 1 (มิ.ย. 2026),Search,ค้นหาสินค้า / แสดงผลการค้นหา,มิ.ย. 2026,Mobile App
+Development Month 1 (มิ.ย. 2026),Product Detail,หน้ารายละเอียดสินค้า,มิ.ย. 2026,Mobile App
+Development Month 1 (มิ.ย. 2026),Add to Cart,เพิ่มสินค้าเข้าตะกร้า,มิ.ย. 2026,Mobile App
+Development Month 1 (มิ.ย. 2026),Promotion / Promo Code,กรอก Promo Code / ส่วนลด,มิ.ย. 2026,Mobile App
+Development Month 1 (มิ.ย. 2026),Payment Gateway,เชื่อมต่อ Flash Pay,มิ.ย. 2026,Integration
+Development Month 1 (มิ.ย. 2026),Shipping,เชื่อมต่อ Flash Express,มิ.ย. 2026,Integration
+Development Month 1 (มิ.ย. 2026),OMS — Order Push & Stock Sync,เชื่อมต่อ Zort,มิ.ย. 2026,Integration
+Development Month 1 (มิ.ย. 2026),Search Engine,ติดตั้งและตั้งค่าระบบค้นหา,มิ.ย. 2026,Integration
+Development Month 1 (มิ.ย. 2026),Push Notification,ตั้งค่า OneSignal,มิ.ย. 2026,Integration
+,,,,
+Development Month 2 (ก.ค. 2026),Checkout Flow,กระบวนการสั่งซื้อ / เลือกที่อยู่ / ยืนยัน,ก.ค. 2026,Mobile App
+Development Month 2 (ก.ค. 2026),Address Management,จัดการที่อยู่จัดส่ง,ก.ค. 2026,Mobile App
+Development Month 2 (ก.ค. 2026),Order Tracking & History,ติดตามสถานะ / ประวัติคำสั่งซื้อ,ก.ค. 2026,Mobile App
+Development Month 2 (ก.ค. 2026),Customer Profile,ข้อมูลส่วนตัว / Settings / Logout,ก.ค. 2026,Mobile App
+Development Month 2 (ก.ค. 2026),Email Notification,ส่งอีเมลยืนยันคำสั่งซื้อ,ก.ค. 2026,Integration
+Development Month 2 (ก.ค. 2026),UAT & Bug Fix,ทดสอบระบบร่วมกับทีม PetPaw + แก้ไข,ก.ค. 2026,QA
+Development Month 2 (ก.ค. 2026),Deployment,นำขึ้น Production (Web + App Store / Play Store),ก.ค. 2026,
+,,,,
+================== ราคาและการชำระเงิน ==================,,,,
+,,,,
+รายการ,จำนวนเงิน (บาท),เงื่อนไข,,
+ราคารวม (ไม่รวม VAT 7%),380000,,,
+,,,,
+Milestone,จำนวนเงิน (บาท),เปอร์เซ็นต์,เงื่อนไข,
+1 — เริ่มงาน,152000,40%,ลงนามสัญญาและชำระ Deposit,
+2 — ส่ง UAT,114000,30%,ส่งมอบระบบให้ทีม PetPaw ทดสอบ,
+3 — Launch,114000,30%,Go-live บน Production สำเร็จ,
+รวม,380000,100%,,
+,,,,
+================== ไม่รวมในขอบเขต (Out of Scope) ==================,,,,
+,,,,
+รายการ,รายละเอียด,,,
+ค่าบริการ 3rd Party,"Vercel, Neon, Flash Pay, Mailgun, Apitel, OneSignal ฯลฯ — PetPaw ชำระโดยตรง",,,
+Developer Account,ค่า Apple Developer / Google Play Console,,,
+Phase 2+ Features,"Seller Portal, Full Coupon System, Dashboard, Chat ฯลฯ",,,
+Post-launch Support,Maintenance รายเดือน — คิดเป็น Retainer แยก,,,
+UI/UX Design,กรณีไม่มี Figma ส่งมอบจาก PetPaw,,,
+,,,,
+================== เงื่อนไขและข้อตกลง ==================,,,,
+,,,,
+ข้อ,รายละเอียด,,,
+1,Design ต้อง Approve ก่อน Dev เริ่ม — เปลี่ยนหลังจากนั้นคิดเป็น Change Request,,,
+2,PetPaw ต้องส่ง API Key / Merchant Account ทุก Service ก่อนสิ้นสุด Planning Phase,,,
+3,Developer ฝั่ง PetPaw ต้อง Available full-time ตลอด Project,,,
+4,งานนอก Scope ประเมินราคาและ Timeline แยก,,,
+5,PetPaw มีเวลา UAT 1 สัปดาห์ หากเกินอาจกระทบ Timeline,,,
+6,รับประกัน Bug จาก Development 30 วันหลัง Launch,,,
+,,,,
+*เอกสารนี้มีอายุ 30 วันนับจากวันที่ออก*,,,,
